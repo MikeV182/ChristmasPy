@@ -8,5 +8,6 @@ class Parser:
         with open(self.config_file) as config:
             data = json.load(config)
             api_id = int(data['api_id'])
-            api_hash = data['api_hash']            
-        return api_id, api_hash
+            api_hash = data['api_hash']
+            chats = data['chats']         
+        return api_id, api_hash, chats
