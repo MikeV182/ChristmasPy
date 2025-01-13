@@ -2,7 +2,7 @@ try:
     from telethon import TelegramClient
     from threading import Thread
     from parser import Parser
-    import traceback, sys, requests, os
+    import traceback, sys, requests, os, asyncio, random
     from lxml import html
 
 
@@ -38,6 +38,15 @@ try:
                 id += 1
         print(f'page {page_id} status: \033[32m[DONE]\033[0m')
 
+    async def send_random_greeting(chat, greetings_dict):
+        print(f'sending greeting to: \033[33m{chat}\033[0m')
+        random_greeting_lines = random.choice(list(greetings_dict.values()))
+        final_greeting = ''
+        for line in random_greeting_lines:
+            final_greeting += line + '\n'
+        final_greeting = final_greeting.strip('\n')
+        await client.send_message(chat, final_greeting)
+        print(f'\033[33m{chat}\033[0m greeting status: \033[32m[SENT]\033[0m')
 
     async def main():
         me = await client.get_me()
@@ -60,8 +69,9 @@ try:
         print('==== GREETINGS COLLECTED ====')
 
         print('\n==== SENDING GREETIGNS TO ALL MENTIONED USERS ====')
-        
-
+        for chat in greetings_chats:
+            await send_random_greeting(chat, greetings_dict)
+        print('==== ALL GREETINGS ARE SENT ====')
 
     with client:
         client.loop.run_until_complete(main())
