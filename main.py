@@ -2,13 +2,12 @@ try:
     from telethon import TelegramClient
     from threading import Thread
     from parser import Parser
-    import traceback, sys, requests, os, asyncio, random
+    import traceback, sys, requests, os, random
     from lxml import html
 
 
     parser = Parser('config.json')
     greetings_dict = {}
-    greetings_chats = []
     api_id, api_hash, greetings_chats = parser.parse_config()
     client = TelegramClient('client', api_id, api_hash)
 
@@ -16,14 +15,14 @@ try:
     def scrap_web_page(page_id, greetings_dict):
         url = 'https://pozdravok.com/pozdravleniya/prazdniki/noviy-god/korotkie/' \
             + str(page_id) + '.htm'
-        print(f'started scrapping page {page_id}:\n\t', url)
+        print(f'Started scrapping page {page_id}:\n\t', url)
         responce = requests.get(url)
         if responce.status_code == 200:
             element_tree = html.fromstring(responce.content)
         else:
-            print('a problem occured when sending request to a web page:\n\t', 
+            print('A problem occured when sending request to a web page:\n\t', 
                   url, 
-                  f'\n\t status code: {responce.status_code}')
+                  f'\n\t Status code: {responce.status_code}')
             os._exit(1)
         id = 1
         while True:
@@ -36,24 +35,27 @@ try:
             else:
                 greetings_dict[selected_greeting_id[0]] = selected_greeting
                 id += 1
-        print(f'page {page_id} status: \033[32m[DONE]\033[0m')
+        print(f'Page {page_id} status: \033[32m[DONE]\033[0m')
 
     async def send_random_greeting(chat, greetings_dict):
-        print(f'sending greeting to: \033[33m{chat}\033[0m')
-        random_greeting_lines = random.choice(list(greetings_dict.values()))
-        final_greeting = ''
-        for line in random_greeting_lines:
-            final_greeting += line + '\n'
-        final_greeting = final_greeting.strip('\n')
-        await client.send_message(chat, final_greeting)
-        print(f'\033[33m{chat}\033[0m greeting status: \033[32m[SENT]\033[0m')
+        try:
+            print(f'Sending greeting to: \033[33m{chat}\033[0m')
+            random_greeting_lines = random.choice(list(greetings_dict.values()))
+            final_greeting = ''
+            for line in random_greeting_lines:
+                final_greeting += line + '\n'
+            final_greeting = final_greeting.strip('\n')
+            await client.send_message(chat, final_greeting)
+            print(f'User \033[33m{chat}\033[0m greeting status: \033[32m[SENT]\033[0m')
+        except ValueError:
+            print(f'No user has such username(or phone): {chat} \033[31m[ERROR]\033[0m')
 
     async def main():
         me = await client.get_me()
         print('\n==== LOGGED IN AS ====')
         print('Username:', me.username, '\nPhone:', me.phone)
 
-        print('\n==== STARTED SCRAPPING THE GREETINGS PAGE ====')
+        print('\n==== STARTED SCRAPPING GREETINGS PAGES ====')
         # starting from second page because first page has unique url '/', 
         # but others will have formats like this '/i.htm'
         i = 2 
